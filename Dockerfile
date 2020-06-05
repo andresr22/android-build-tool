@@ -128,7 +128,6 @@ COPY devices "${ROOT}/devices"
 
 RUN echo "Create an AVD emulator with custom hardware profile" && \
     ln -sf "${PROFILE_PATH}/${SKIN_NAME}.xml" "${ANDROID_HOME}/.android/devices.xml" && \
-    # ls -ltr "${ANDROID_HOME}/.android/devices.xml" && \
     avdmanager create avd \
     -n Test_Emulator \
     -b "${IMG_TYPE}/${SYS_IMG}" \
@@ -173,3 +172,10 @@ RUN echo "Install Flutter sdk" && \
 #     mkdir -p /.fastlane && \
 #     chmod 777 /.fastlane && \
 #     bundle install --quiet
+
+# Expose Ports
+# 4723 Appium port
+# 5554 Emulator port
+# 5555 ADB connection port
+#===============
+EXPOSE 4723 5554 5555
