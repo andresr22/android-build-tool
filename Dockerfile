@@ -175,6 +175,12 @@ RUN echo "Installing gradle" \
 RUN echo "Installing fastlane" \
  && gem install fastlane --quiet --no-document > /dev/null
 
+# Install firebase
+RUN echo "Installing firebase" \
+ && npm install --quiet -g firebase-tools
+
+RUN firebase -V
+
 ENV LC_ALL=en_US.UTF-8 \
     LANG=en_US.UTF-8
 
