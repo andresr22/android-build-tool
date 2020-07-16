@@ -8,12 +8,12 @@ ARG ANDROID_VERSION=10.0
 ARG API_LEVEL=29
 ARG SYS_IMG=x86
 ARG IMG_TYPE=google_apis
-ARG GRADLE_VERSION=5.6.4
+ARG SONAR_SCANNER_VERSION=4.4.0.2170
 
 ENV ANDROID_HOME="/opt/android-sdk" \
     FLUTTER_HOME="/opt/flutter" \
-    JAVA_HOME="/usr/lib/jvm/java-8-openjdk-amd64/" \
-    GRADLE_HOME="/opt/gradle"
+    JAVA_HOME="/usr/lib/jvm/java-8-openjdk-amd64" \
+    SONAR_SCANNER_HOME="/opt/sonar-scanner"
 
 # Get the latest version from https://developer.android.com/studio/index.html or default version 4333796
 ENV ANDROID_SDK_TOOLS_VERSION=$ANDROID_SDK_TOOLS_VERSION \
@@ -46,7 +46,7 @@ ENV DEBIAN_FRONTEND="noninteractive" \
 ENV ANDROID_SDK_HOME="$ANDROID_HOME" \
     ANDROID_SDK_ROOT="$ANDROID_HOME"
 
-ENV PATH="$PATH:${ANDROID_SDK_HOME}/emulator:${ANDROID_SDK_HOME}/tools/bin:${ANDROID_SDK_HOME}/tools:${ANDROID_SDK_HOME}/platform-tools:${GRADLE_HOME}/bin"
+ENV PATH="$PATH:${ANDROID_SDK_HOME}/emulator:${ANDROID_SDK_HOME}/tools/bin:${ANDROID_SDK_HOME}/tools:${ANDROID_SDK_HOME}/platform-tools:${GRADLE_HOME}/bin:${SONAR_SCANNER_HOME}/bin"
 
 WORKDIR /tmp
 
@@ -73,7 +73,7 @@ RUN apt-get update -qq > /dev/null \
         zip \
         zlib1g-dev > /dev/null \
  && ln -sf /usr/share/zoneinfo/America/Mexico_City /etc/localtime \
- && echo "Installing nodejs, npm, appium, appium doctor" \
+ && echo "Installing nodejs, npm, appium, appium doctor, firebase" \
  && curl -sL -k https://deb.nodesource.com/setup_${NODE_VERSION} \
         | bash - > /dev/null \
  && apt-get install -qq nodejs > /dev/null \
@@ -88,7 +88,8 @@ RUN apt-get update -qq > /dev/null \
  && npm install --quiet -g npm > /dev/null \
  && npm install --quiet -g \
         appium --unsafe-perm=true --allow-root \
-        appium-doctor --unsafe-perm=true --allow-root > /dev/null \
+        appium-doctor --unsafe-perm=true --allow-root \
+        firebase-tools > /dev/null \
  && npm cache clean --force > /dev/null \
  && rm -rf /tmp/* /var/tmp/*
 
@@ -152,13 +153,6 @@ RUN echo "Editing config file" \
 #  && flutter upgrade \
 #  && rm -f flutter.tar.xz
 
-RUN echo "Installing gradle" \
- && wget --quiet --output-document=gradle.zip \
-        "https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-all.zip" \
- && unzip -q gradle.zip -d "/opt/" \
- && rm --force gradle.zip \
- && mv "/opt/gradle-${GRADLE_VERSION}" ${GRADLE_HOME}
-
 # RUN echo "Installing kotlin" \
 #  && wget --quiet -O sdk.install.sh "https://get.sdkman.io" \
 #  && bash -c "bash ./sdk.install.sh > /dev/null && source ~/.sdkman/bin/sdkman-init.sh && sdk install kotlin" \
@@ -175,14 +169,15 @@ RUN echo "Installing gradle" \
 RUN echo "Installing fastlane" \
  && gem install fastlane --quiet --no-document > /dev/null
 
-# Install firebase
-RUN echo "Installing firebase" \
- && npm install --quiet -g firebase-tools
-
-RUN firebase -V
-
 ENV LC_ALL=en_US.UTF-8 \
     LANG=en_US.UTF-8
+
+RUN echo "Downloading sonar-scanner" \
+ && wget -q -O /opt/sonar-scanner-cli.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-${SONAR_SCANNER_VERSION}.zip \
+ && cd /opt \
+ && unzip sonar-scanner-cli.zip \
+ && rm sonar-scanner-cli.zip \
+ && mv sonar-scanner-${SONAR_SCANNER_VERSION} ${SONAR_SCANNER_HOME}
 
 # Expose Ports
 # 4723 Appium port
